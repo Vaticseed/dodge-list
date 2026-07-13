@@ -80,6 +80,32 @@
   .stat-num{font-size:22px;color:var(--text);font-weight:700;}
   .stat-label{font-size:10px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;}
 
+  /* ---- Admin discord list ---- */
+  .admin-discord-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:14px;
+  }
+  .discord-pill{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    color:var(--text);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    padding:6px 12px;
+    border-radius:var(--radius);
+  }
+  .discord-pill::before{
+    content:'';
+    width:6px;height:6px;
+    border-radius:50%;
+    background:#5865F2;
+  }
+
   /* ---- Disclaimer ---- */
   .notice{
     background:var(--bg-panel);
@@ -191,8 +217,6 @@
   }
   .entry::before{top:-1px;left:-1px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);}
   .entry::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent);}
-  .entry.disputed{opacity:0.55;}
-  .entry.disputed::before, .entry.disputed::after{border-color:var(--text-dim);}
   .entry-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
   .tag{
     font-family:'JetBrains Mono',monospace;
@@ -208,7 +232,6 @@
     border:1px solid var(--text-dim);
     color:var(--text-dim);
   }
-  .badge.disputed-badge{color:var(--cyan);border-color:var(--cyan);}
   .badge.verified-badge{color:#4ade80;border-color:#4ade80;}
   .reason{color:var(--text-muted);font-size:13.5px;margin-top:8px;line-height:1.5;}
   .meta-row{
@@ -307,10 +330,10 @@
 
   <header>
     <h1>DODGE<span>_</span>LIST</h1>
-    <p class="sub">Add <strong style="color:var(--text);">lovewnl</strong> on Discord to add people to the dodge list.</p>
+    <p class="sub">Contact an admin on Discord to add someone to the dodge list.</p>
+    <div class="admin-discord-row" id="admin-discord-row"></div>
     <div class="stat-row">
       <div><div class="stat-num" id="stat-total">0</div><div class="stat-label">Entries</div></div>
-      <div><div class="stat-num" id="stat-disputed">0</div><div class="stat-label">Disputed</div></div>
     </div>
   </header>
 
@@ -406,6 +429,16 @@ const LOCAL_KEY = 'dodge-list-entries';
 function loadLocal(){ try{ return JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; }catch{ return []; } }
 function saveLocal(entries){ localStorage.setItem(LOCAL_KEY, JSON.stringify(entries)); }
 
+/* ============================================================
+   ADMIN DISCORD USERNAMES
+   Edit this list to add/remove who shows up as an admin to
+   contact. Just add or remove names in the array below.
+   ============================================================ */
+const ADMIN_DISCORDS = ['lovewnl', 'benjyvv'];
+
+const adminDiscordRow = document.getElementById('admin-discord-row');
+adminDiscordRow.innerHTML = ADMIN_DISCORDS.map(name => `<span class="discord-pill">${escapeHtml(name)}</span>`).join('');
+
 let entries = [];
 
 function render(){
@@ -423,18 +456,17 @@ function render(){
     });
 
   document.getElementById('stat-total').textContent = entries.length;
-  document.getElementById('stat-disputed').textContent = entries.filter(e=>e.disputed).length;
 
   listEl.innerHTML = '';
   emptyEl.style.display = filtered.length ? 'none' : 'block';
 
   filtered.forEach(e => {
     const card = document.createElement('div');
-    card.className = 'entry' + (e.disputed ? ' disputed' : '');
+    card.className = 'entry';
     const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString() : '';
-    let badge = '<span class="badge">Unverified</span>';
-    if (e.disputed) badge = '<span class="badge disputed-badge">Disputed</span>';
-    else if (e.verified) badge = '<span class="badge verified-badge">Verified</span>';
+    const badge = e.verified
+      ? '<span class="badge verified-badge">Verified</span>'
+      : '';
     card.innerHTML = `
       <div class="entry-top">
         <div class="tag">${escapeHtml(e.username)}<span class="hash">#</span>${escapeHtml(e.tag)}</div>
@@ -444,7 +476,6 @@ function render(){
       <div class="meta-row">
         <span>${date}</span>
         <span class="meta-actions">
-          ${isAdmin ? `<span data-action="dispute" data-id="${e.id}">${e.disputed ? 'Undo dispute' : 'Dispute'}</span>` : ''}
           ${isAdmin ? `<span data-action="verify" data-id="${e.id}" style="color:#4ade80;">${e.verified ? 'Unverify' : 'Verify'}</span>` : ''}
           ${isAdmin ? `<span data-action="delete" data-id="${e.id}" style="color:var(--accent);">Delete</span>` : ''}
         </span>
@@ -453,9 +484,6 @@ function render(){
     listEl.appendChild(card);
   });
 
-  listEl.querySelectorAll('[data-action="dispute"]').forEach(el=>{
-    el.addEventListener('click', ()=> toggleDispute(el.getAttribute('data-id')));
-  });
   listEl.querySelectorAll('[data-action="verify"]').forEach(el=>{
     el.addEventListener('click', ()=> toggleVerified(el.getAttribute('data-id')));
   });
@@ -472,25 +500,12 @@ function escapeHtml(str){
 
 async function addEntry(entry){
   entry.createdAt = Date.now();
-  entry.disputed = false;
   entry.verified = false;
   if (useFirebase) {
     await addDoc(collection(db, 'entries'), entry);
   } else {
     entry.id = 'e' + Math.random().toString(36).slice(2,10);
     entries.push(entry);
-    saveLocal(entries);
-    render();
-  }
-}
-
-async function toggleDispute(id){
-  if (useFirebase) {
-    const target = entries.find(e=>e.id===id);
-    await updateDoc(doc(db, 'entries', id), { disputed: !target.disputed });
-  } else {
-    const target = entries.find(e=>e.id===id);
-    if (target) target.disputed = !target.disputed;
     saveLocal(entries);
     render();
   }
