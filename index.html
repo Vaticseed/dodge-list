@@ -308,7 +308,9 @@
   }
   .badge.verified-badge{color:#4ade80;border-color:#4ade80;}
   .badge.pending-badge{color:#facc15;border-color:#facc15;}
+  .badge.pinned-badge{color:#facc15;border-color:#facc15;background:rgba(250,204,21,0.1);}
   .entry.pending{border-color:rgba(250,204,21,0.35);}
+  .entry.pinned{border-color:rgba(250,204,21,0.6);box-shadow:0 0 0 1px rgba(250,204,21,0.15);}
   .reason{color:var(--text-muted);font-size:13.5px;margin-top:8px;line-height:1.5;}
   .meta-row{
     display:flex;justify-content:space-between;align-items:center;
@@ -594,6 +596,9 @@ function render(){
   const filtered = tabEntries
     .slice()
     .sort((a,b)=> {
+      const pinnedA = a.pinned ? 1 : 0;
+      const pinnedB = b.pinned ? 1 : 0;
+      if (pinnedA !== pinnedB) return pinnedB - pinnedA;
       const tierA = typeof a.rankTier === 'number' ? a.rankTier : -1;
       const tierB = typeof b.rankTier === 'number' ? b.rankTier : -1;
       if (tierA !== tierB) return tierB - tierA;
@@ -614,10 +619,11 @@ function render(){
 
   filtered.forEach(e => {
     const card = document.createElement('div');
-    card.className = 'entry' + (!e.verified ? ' pending' : '');
+    card.className = 'entry' + (!e.verified ? ' pending' : '') + (e.pinned ? ' pinned' : '');
     const badge = e.verified
       ? '<span class="badge verified-badge">Verified</span>'
       : '<span class="badge pending-badge">Unverified</span>';
+    const pinBadge = e.pinned ? '<span class="badge pinned-badge">📌 Pinned</span>' : '';
 
     let rankIconHtml = '';
     let rankAction = '';
@@ -640,6 +646,7 @@ function render(){
       <div class="entry-top">
         <div class="tag"><bdi>${escapeHtml(e.username)}</bdi><span class="hash">#</span><bdi>${escapeHtml(e.tag)}</bdi></div>
         <div class="entry-top-right">
+          ${pinBadge}
           ${badge}
           ${rankIconHtml}
         </div>
@@ -652,6 +659,7 @@ function render(){
         </span>
         <span class="meta-actions">
           ${rankAction}
+          ${isAdmin ? `<span data-action="pin" data-id="${e.id}" style="color:#facc15;">${e.pinned ? 'Unpin' : 'Pin'}</span>` : ''}
           ${isAdmin && !e.verified ? `<span data-action="verify" data-id="${e.id}" style="color:#4ade80;">Verify</span>` : ''}
           ${isAdmin ? `<span data-action="delete" data-id="${e.id}" style="color:var(--accent);">Delete</span>` : ''}
         </span>
@@ -665,6 +673,9 @@ function render(){
   });
   listEl.querySelectorAll('[data-action="check-rank"]').forEach(el=>{
     el.addEventListener('click', ()=> checkRank(el.getAttribute('data-id')));
+  });
+  listEl.querySelectorAll('[data-action="pin"]').forEach(el=>{
+    el.addEventListener('click', ()=> togglePin(el.getAttribute('data-id')));
   });
   listEl.querySelectorAll('[data-action="verify"]').forEach(el=>{
     el.addEventListener('click', ()=> verifyEntry(el.getAttribute('data-id')));
@@ -710,6 +721,20 @@ async function verifyEntry(id){
   } else {
     const target = entries.find(e => e.id === id);
     if (target) target.verified = true;
+    saveLocal(entries);
+    render();
+  }
+}
+
+async function togglePin(id){
+  if (!isAdmin) return;
+  const target = entries.find(e => e.id === id);
+  if (!target) return;
+  const newPinned = !target.pinned;
+  if (useFirebase) {
+    await updateDoc(doc(db, 'entries', id), { pinned: newPinned });
+  } else {
+    target.pinned = newPinned;
     saveLocal(entries);
     render();
   }
