@@ -385,8 +385,8 @@
         </svg>
       </div>
       <div class="contact-text">
-        <p class="contact-title">Want someone added?</p>
-        <p class="contact-sub">Message an admin on Discord — they'll review and add the entry.</p>
+        <p class="contact-title">Want someone added or removed?</p>
+        <p class="contact-sub">Message an admin on Discord and they'll review the request.</p>
       </div>
       <div class="admin-discord-row" id="admin-discord-row"></div>
     </div>
@@ -415,7 +415,7 @@
       </div>
     </div>
     <label class="field-label">Reason (optional)</label>
-    <textarea id="in-reason" placeholder="What happened? Be specific — this is what other players will see."></textarea>
+    <textarea id="in-reason" placeholder="What happened? Be specific, this is what other players will see."></textarea>
     <div class="form-actions">
       <button class="btn-ghost" id="cancel-add">Cancel</button>
       <button class="btn-primary" id="submit-add">Submit Report</button>
@@ -425,15 +425,13 @@
   <div id="list"></div>
   <div id="empty-state" style="display:none;">NO ENTRIES FOUND</div>
 
-  <footer>
-    dodge-list &middot; data stored via <span id="backend-label">local browser storage</span> &middot; <a href="#" id="how-it-works-link">how this works</a>
-  </footer>
+
 </div>
 
 <script type="module">
 /* ============================================================
    BACKEND
-   By default this runs on localStorage — data only lives in
+   By default this runs on localStorage. Data only lives in
    YOUR browser, so it won't actually be shared with other
    visitors of your GitHub Pages site. To make it a real shared
    list, set up a free Firebase project and paste your config
@@ -467,7 +465,6 @@ if (FIREBASE_CONFIG) {
     signOut = authLib.signOut;
     onAuthStateChanged = authLib.onAuthStateChanged;
     useFirebase = true;
-    document.getElementById('backend-label').textContent = 'Firebase (shared, live)';
     onAuthStateChanged(auth, (user) => {
       isAdmin = !!user;
       document.getElementById('admin-login-fields').style.display = isAdmin ? 'none' : 'block';
@@ -624,16 +621,10 @@ document.getElementById('submit-add').addEventListener('click', async ()=>{
   addPanel.classList.remove('open');
 });
 
-document.getElementById('how-it-works-link').addEventListener('click', (ev)=>{
-  ev.preventDefault();
-  alert(useFirebase
-    ? 'This list is stored in a shared Firebase database — everyone who visits this page sees and can add the same entries.'
-    : 'No shared backend is configured yet, so entries are saved only in YOUR browser (localStorage). Other visitors won\'t see what you add until this is connected to a real backend — see README.md.');
-});
 
 const adminDropdown = document.getElementById('admin-dropdown');
 document.getElementById('admin-toggle-btn').addEventListener('click', ()=>{
-  if (!useFirebase) { alert('Admin login requires Firebase to be set up first — see README.md.'); return; }
+  if (!useFirebase) { alert('Admin login requires Firebase to be set up first. See README.md.'); return; }
   adminDropdown.classList.toggle('open');
 });
 document.getElementById('admin-cancel').addEventListener('click', ()=>{
