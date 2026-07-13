@@ -30,4 +30,5 @@ jobs:
         env:
           HENRIK_API_KEY: ${{ secrets.HENRIK_API_KEY }}
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          DRY_RUN: ${{ vars.DRY_RUN }}
         run: npm run update-ranks
