@@ -43,6 +43,9 @@ async function fetchRank(username, tag) {
   return {
     rank: current.currenttier_patched || 'Unrated',
     rankImage: current.images?.small || null,
+    rankTier: typeof current.currenttier === 'number' ? current.currenttier : 0,
+    username: json.data.name || undefined,
+    tag: json.data.tag || undefined,
   };
 }
 
@@ -59,12 +62,11 @@ async function main() {
     if (!data.username || !data.tag) continue;
 
     try {
-      const { rank, rankImage } = await fetchRank(data.username, data.tag);
-      await docSnap.ref.update({
-        rank,
-        rankImage,
-        rankCheckedAt: Date.now(),
-      });
+      const { rank, rankImage, rankTier, username, tag } = await fetchRank(data.username, data.tag);
+      const update = { rank, rankImage, rankTier, rankCheckedAt: Date.now() };
+      if (username) update.username = username;
+      if (tag) update.tag = tag;
+      await docSnap.ref.update(update);
       updated++;
       console.log(`OK  ${data.username}#${data.tag} -> ${rank}`);
     } catch (err) {
