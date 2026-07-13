@@ -545,8 +545,9 @@ function render(){
       if (rankLoadingIds.has(e.id)) {
         rankBlock = `<span class="rank-tag">Checking...</span>`;
       } else if (e.rank) {
-        rankBlock = `<span class="rank-tag">${e.rankImage ? `<img src="${e.rankImage}" alt="">` : ''}${escapeHtml(e.rank)}</span><span data-action="check-rank" data-id="${e.id}" style="color:var(--text-dim);">Refresh</span>`;
-      } else {
+        rankBlock = `<span class="rank-tag">${e.rankImage ? `<img src="${e.rankImage}" alt="">` : ''}${escapeHtml(e.rank)}</span>`;
+        if (isAdmin) rankBlock += `<span data-action="check-rank" data-id="${e.id}" style="color:var(--text-dim);">Refresh</span>`;
+      } else if (isAdmin) {
         rankBlock = `<span data-action="check-rank" data-id="${e.id}" style="color:var(--cyan);">Check Rank</span>`;
       }
     }
@@ -609,6 +610,7 @@ async function deleteEntry(id){
 const rankLoadingIds = new Set();
 
 async function checkRank(id){
+  if (!isAdmin) return;
   if (!HENRIK_API_KEY) { alert('Rank lookup is not set up yet, see README.md.'); return; }
   const target = entries.find(e => e.id === id);
   if (!target) return;
@@ -620,8 +622,9 @@ async function checkRank(id){
     const res = await fetch(url, { headers: { Authorization: HENRIK_API_KEY } });
     const json = await res.json();
     if (!res.ok || !json.data) throw new Error(json?.errors?.[0]?.message || 'Rank not found');
-    const rank = json.data.currenttier_patched || 'Unranked';
-    const rankImage = json.data.images?.small || null;
+    const current = json.data.current_data || {};
+    const rank = current.currenttier_patched || 'Unrated';
+    const rankImage = current.images?.small || null;
     const update = { rank, rankImage, rankCheckedAt: Date.now() };
     if (useFirebase) {
       await updateDoc(doc(db, 'entries', id), update);
