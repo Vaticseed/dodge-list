@@ -274,7 +274,11 @@
     color:var(--text);
     direction:ltr;
     unicode-bidi:isolate;
+    text-decoration:none;
+    display:inline-block;
+    transition:color .15s;
   }
+  .tag:hover{color:var(--cyan);text-decoration:underline;}
   .tag .hash{color:var(--accent);}
   .badge{
     font-family:'JetBrains Mono',monospace;
@@ -287,7 +291,7 @@
   .badge.verified-badge{color:#4ade80;border-color:#4ade80;}
   .reason{color:var(--text-muted);font-size:13.5px;margin-top:8px;line-height:1.5;}
   .meta-row{
-    display:flex;justify-content:space-between;align-items:center;
+    display:flex;justify-content:flex-end;align-items:center;
     margin-top:12px;padding-top:12px;border-top:1px solid var(--line);
     font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);
   }
@@ -530,7 +534,12 @@ function render(){
 
   const filtered = entries
     .slice()
-    .sort((a,b)=> (b.createdAt||0) - (a.createdAt||0))
+    .sort((a,b)=> {
+      const tierA = typeof a.rankTier === 'number' ? a.rankTier : -1;
+      const tierB = typeof b.rankTier === 'number' ? b.rankTier : -1;
+      if (tierA !== tierB) return tierB - tierA;
+      return (b.createdAt||0) - (a.createdAt||0);
+    })
     .filter(e => {
       if (!q) return true;
       const full = `${e.username}#${e.tag}`.toLowerCase();
@@ -545,7 +554,6 @@ function render(){
   filtered.forEach(e => {
     const card = document.createElement('div');
     card.className = 'entry';
-    const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString() : '';
     const badge = e.verified
       ? '<span class="badge verified-badge">Verified</span>'
       : '';
@@ -563,9 +571,11 @@ function render(){
       }
     }
 
+    const trackerUrl = `https://tracker.gg/valorant/profile/riot/${encodeURIComponent(`${e.username}#${e.tag}`)}/overview`;
+
     card.innerHTML = `
       <div class="entry-top">
-        <div class="tag"><bdi>${escapeHtml(e.username)}</bdi><span class="hash">#</span><bdi>${escapeHtml(e.tag)}</bdi></div>
+        <a class="tag" href="${trackerUrl}" target="_blank" rel="noopener noreferrer"><bdi>${escapeHtml(e.username)}</bdi><span class="hash">#</span><bdi>${escapeHtml(e.tag)}</bdi></a>
         <div class="entry-top-right">
           ${badge}
           ${rankIconHtml}
@@ -573,7 +583,6 @@ function render(){
       </div>
       ${e.reason ? `<div class="reason">${escapeHtml(e.reason)}</div>` : ''}
       <div class="meta-row">
-        <span>${date}</span>
         <span class="meta-actions">
           ${rankAction}
           ${isAdmin ? `<span data-action="delete" data-id="${e.id}" style="color:var(--accent);">Delete</span>` : ''}
@@ -639,7 +648,12 @@ async function checkRankFor(id, username, tag){
     const current = json.data.current_data || {};
     const rank = current.currenttier_patched || 'Unrated';
     const rankImage = current.images?.small || null;
-    const update = { rank, rankImage, rankCheckedAt: Date.now() };
+    const rankTier = typeof current.currenttier === 'number' ? current.currenttier : 0;
+    const update = { rank, rankImage, rankTier, rankCheckedAt: Date.now() };
+    // HenrikDev returns the account's real name/tag with correct in-game
+    // capitalization, use it to fix whatever casing was typed in.
+    if (json.data.name) update.username = json.data.name;
+    if (json.data.tag) update.tag = json.data.tag;
     if (useFirebase) {
       await updateDoc(doc(db, 'entries', id), update);
     } else {
