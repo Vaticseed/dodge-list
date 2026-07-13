@@ -222,6 +222,53 @@
   footer{margin-top:50px;text-align:center;font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
   footer a{color:var(--cyan);text-decoration:none;}
 
+  /* ---- Admin corner (top-left) ---- */
+  .admin-corner{
+    position:fixed;
+    top:16px;left:16px;
+    z-index:100;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .admin-btn{
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    color:var(--text-dim);
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    padding:8px 12px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    display:flex;align-items:center;gap:6px;
+    transition:border-color .15s, color .15s;
+  }
+  .admin-btn:hover{border-color:var(--text-muted);color:var(--text);}
+  .admin-btn.is-admin{border-color:var(--cyan);color:var(--cyan);}
+  .admin-btn .dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);}
+  .admin-btn.is-admin .dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+  .admin-dropdown{
+    display:none;
+    position:absolute;
+    top:calc(100% + 8px);left:0;
+    width:260px;
+    background:var(--bg-panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  }
+  .admin-dropdown.open{display:block;}
+  .admin-dropdown h3{
+    font-family:'Chakra Petch',sans-serif;
+    font-size:12px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--accent);margin:0 0 12px;
+  }
+  .admin-dropdown input{font-size:13px;padding:10px 12px;}
+  .admin-dropdown .field-label{margin-top:0;}
+  .admin-dropdown .form-actions{margin-top:12px;}
+  .admin-dropdown .sub{font-size:12px;margin:0 0 10px;}
+
   @media(max-width:520px){
     .grid2{grid-template-columns:1fr;}
     .controls{flex-direction:column;}
@@ -229,19 +276,51 @@
 </style>
 </head>
 <body>
+
+<div class="admin-corner">
+  <button class="admin-btn" id="admin-toggle-btn"><span class="dot"></span><span id="admin-btn-label">Admin</span></button>
+  <div class="admin-dropdown" id="admin-dropdown">
+    <div id="admin-login-fields">
+      <h3>// Admin login</h3>
+      <label class="field-label">Email</label>
+      <input id="admin-email" type="email" placeholder="you@example.com" autocomplete="username">
+      <div style="height:10px;"></div>
+      <label class="field-label">Password</label>
+      <input id="admin-password" type="password" placeholder="••••••••" autocomplete="current-password">
+      <div class="form-actions">
+        <button class="btn-ghost" id="admin-cancel">Cancel</button>
+        <button class="btn-primary" id="admin-login-btn">Log in</button>
+      </div>
+    </div>
+    <div id="admin-logged-in" style="display:none;">
+      <h3>// Admin</h3>
+      <p class="sub">You're logged in. You can add entries and delete any entry.</p>
+      <div class="form-actions">
+        <button class="btn-ghost" id="admin-logout-btn">Log out</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="wrap">
 
   <header>
+    <div class="eyebrow">Live database</div>
     <h1>DODGE<span>_</span>LIST</h1>
+    <p class="sub">A community watch list for teammates you'd rather not queue with again. Search before you invite. Add entries with a reason so the list stays useful, not just a grudge board.</p>
     <div class="stat-row">
       <div><div class="stat-num" id="stat-total">0</div><div class="stat-label">Entries</div></div>
       <div><div class="stat-num" id="stat-disputed">0</div><div class="stat-label">Disputed</div></div>
     </div>
   </header>
 
+  <div class="notice">
+    <strong>Use this responsibly.</strong> Entries are added by an admin — treat every entry as an unverified claim, not a proven fact. Anyone can dispute an entry; disputed entries are visually flagged but not removed automatically.
+  </div>
+
   <div class="controls">
     <div class="scan-box"><input id="search" type="text" placeholder="Search by Username#Tag..." autocomplete="off"></div>
-    <button class="btn-primary" id="toggle-add">+ Add Entry</button>
+    <button class="btn-primary" id="toggle-add" style="display:none;">+ Add Entry</button>
   </div>
 
   <div class="add-panel" id="add-panel">
@@ -268,29 +347,8 @@
   <div id="empty-state" style="display:none;">NO ENTRIES FOUND</div>
 
   <footer>
-    dodge-list &middot; data stored via <span id="backend-label">local browser storage</span> &middot; <a href="#" id="how-it-works-link">how this works</a> &middot; <a href="#" id="admin-link">admin</a>
+    dodge-list &middot; data stored via <span id="backend-label">local browser storage</span> &middot; <a href="#" id="how-it-works-link">how this works</a>
   </footer>
-
-  <div class="add-panel" id="admin-panel">
-    <h3>// Admin login</h3>
-    <div id="admin-login-fields">
-      <label class="field-label">Email</label>
-      <input id="admin-email" type="email" placeholder="you@example.com" autocomplete="username">
-      <div style="height:10px;"></div>
-      <label class="field-label">Password</label>
-      <input id="admin-password" type="password" placeholder="••••••••" autocomplete="current-password">
-      <div class="form-actions">
-        <button class="btn-ghost" id="admin-cancel">Cancel</button>
-        <button class="btn-primary" id="admin-login-btn">Log in</button>
-      </div>
-    </div>
-    <div id="admin-logged-in" style="display:none;">
-      <p class="sub" style="margin:0 0 12px;">Logged in as admin. Delete buttons are now visible on every entry.</p>
-      <div class="form-actions">
-        <button class="btn-ghost" id="admin-logout-btn">Log out</button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script type="module">
@@ -335,6 +393,10 @@ if (FIREBASE_CONFIG) {
       isAdmin = !!user;
       document.getElementById('admin-login-fields').style.display = isAdmin ? 'none' : 'block';
       document.getElementById('admin-logged-in').style.display = isAdmin ? 'block' : 'none';
+      document.getElementById('admin-btn-label').textContent = isAdmin ? 'Admin ✓' : 'Admin';
+      document.getElementById('admin-toggle-btn').classList.toggle('is-admin', isAdmin);
+      document.getElementById('toggle-add').style.display = isAdmin ? 'inline-flex' : 'none';
+      if (!isAdmin) document.getElementById('add-panel').classList.remove('open');
       render();
     });
   } catch (e) {
@@ -494,14 +556,13 @@ document.getElementById('how-it-works-link').addEventListener('click', (ev)=>{
     : 'No shared backend is configured yet, so entries are saved only in YOUR browser (localStorage). Other visitors won\'t see what you add until this is connected to a real backend — see README.md.');
 });
 
-const adminPanel = document.getElementById('admin-panel');
-document.getElementById('admin-link').addEventListener('click', (ev)=>{
-  ev.preventDefault();
+const adminDropdown = document.getElementById('admin-dropdown');
+document.getElementById('admin-toggle-btn').addEventListener('click', ()=>{
   if (!useFirebase) { alert('Admin login requires Firebase to be set up first — see README.md.'); return; }
-  adminPanel.classList.toggle('open');
+  adminDropdown.classList.toggle('open');
 });
 document.getElementById('admin-cancel').addEventListener('click', ()=>{
-  adminPanel.classList.remove('open');
+  adminDropdown.classList.remove('open');
 });
 document.getElementById('admin-login-btn').addEventListener('click', async ()=>{
   const email = document.getElementById('admin-email').value.trim();
@@ -510,14 +571,19 @@ document.getElementById('admin-login-btn').addEventListener('click', async ()=>{
   try {
     await signInWithEmailAndPassword(auth, email, password);
     document.getElementById('admin-password').value = '';
-    adminPanel.classList.remove('open');
+    adminDropdown.classList.remove('open');
   } catch (e) {
     alert('Login failed: ' + e.message);
   }
 });
 document.getElementById('admin-logout-btn').addEventListener('click', async ()=>{
   await signOut(auth);
-  adminPanel.classList.remove('open');
+  adminDropdown.classList.remove('open');
+});
+
+document.addEventListener('click', (ev)=>{
+  const corner = document.querySelector('.admin-corner');
+  if (!corner.contains(ev.target)) adminDropdown.classList.remove('open');
 });
 </script>
 </body>
