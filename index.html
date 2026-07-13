@@ -767,26 +767,33 @@ async function togglePin(id){
 
 const rankLoadingIds = new Set();
 
+class AccountNotFoundError extends Error {}
+
+async function fetchHenrikAccount(username, tag){
+  const region = 'eu';
+  const url = `https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${encodeURIComponent(username)}/${encodeURIComponent(tag)}`;
+  const res = await fetch(url, { headers: { Authorization: HENRIK_API_KEY } });
+  if (res.status === 404) throw new AccountNotFoundError('This account does not exist.');
+  const json = await res.json();
+  if (!res.ok || !json.data) throw new Error(json?.errors?.[0]?.message || `HTTP ${res.status}`);
+  const current = json.data.current_data || {};
+  return {
+    rank: current.currenttier_patched || 'Unrated',
+    rankImage: current.images?.small || null,
+    rankTier: typeof current.currenttier === 'number' ? current.currenttier : 0,
+    username: json.data.name || username,
+    tag: json.data.tag || tag,
+  };
+}
+
 async function checkRankFor(id, username, tag){
   if (!isAdmin) return;
   if (!HENRIK_API_KEY) return;
   rankLoadingIds.add(id);
   render();
   try {
-    const region = 'eu';
-    const url = `https://api.henrikdev.xyz/valorant/v2/mmr/${region}/${encodeURIComponent(username)}/${encodeURIComponent(tag)}`;
-    const res = await fetch(url, { headers: { Authorization: HENRIK_API_KEY } });
-    const json = await res.json();
-    if (!res.ok || !json.data) throw new Error(json?.errors?.[0]?.message || 'Rank not found');
-    const current = json.data.current_data || {};
-    const rank = current.currenttier_patched || 'Unrated';
-    const rankImage = current.images?.small || null;
-    const rankTier = typeof current.currenttier === 'number' ? current.currenttier : 0;
-    const update = { rank, rankImage, rankTier, rankCheckedAt: Date.now() };
-    // HenrikDev returns the account's real name/tag with correct in-game
-    // capitalization, use it to fix whatever casing was typed in.
-    if (json.data.name) update.username = json.data.name;
-    if (json.data.tag) update.tag = json.data.tag;
+    const { rank, rankImage, rankTier, username: fixedUsername, tag: fixedTag } = await fetchHenrikAccount(username, tag);
+    const update = { rank, rankImage, rankTier, rankCheckedAt: Date.now(), username: fixedUsername, tag: fixedTag };
     if (useFirebase) {
       await updateDoc(doc(db, 'entries', id), update);
     } else {
@@ -863,16 +870,50 @@ document.getElementById('cancel-add').addEventListener('click', ()=>{
 });
 
 document.getElementById('submit-add').addEventListener('click', async ()=>{
-  const username = document.getElementById('in-username').value.trim();
-  const tag = document.getElementById('in-tag').value.trim().replace(/^#/,'');
+  const submitBtn = document.getElementById('submit-add');
+  let username = document.getElementById('in-username').value.trim();
+  let tag = document.getElementById('in-tag').value.trim().replace(/^#/,'');
   const reason = document.getElementById('in-reason').value.trim();
   const type = isAdmin ? document.getElementById('in-type').value : 'cheater';
 
   if (!username || !tag) { alert('Username and tag are required.'); return; }
 
+  let rankData = null;
+  if (HENRIK_API_KEY) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Checking account...';
+    try {
+      rankData = await fetchHenrikAccount(username, tag);
+      // use the corrected in-game capitalization from here on
+      username = rankData.username;
+      tag = rankData.tag;
+    } catch (e) {
+      if (e instanceof AccountNotFoundError) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit Report';
+        alert(`${username}#${tag} doesn't exist. Double check the username and tag and try again.`);
+        return;
+      }
+      // Any other error (rate limit, network, HenrikDev down) is
+      // treated as transient, not proof the account is invalid, so
+      // the submission is still allowed through.
+      console.warn('Could not verify account before adding (allowing anyway):', e.message);
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Report';
+  }
+
+  const entryData = { username, tag, reason, type, verified: isAdmin };
+  if (rankData) {
+    entryData.rank = rankData.rank;
+    entryData.rankImage = rankData.rankImage;
+    entryData.rankTier = rankData.rankTier;
+    entryData.rankCheckedAt = Date.now();
+  }
+
   let newId;
   try {
-    newId = await addEntry({ username, tag, reason, type, verified: isAdmin });
+    newId = await addEntry(entryData);
   } catch (e) {
     if (e instanceof DuplicateEntryError) {
       alert(`${username}#${tag} is already on the ${type === 'cheater' ? 'Cheaters' : 'Dodge'} list.`);
@@ -882,7 +923,9 @@ document.getElementById('submit-add').addEventListener('click', async ()=>{
     return;
   }
 
-  if (isAdmin && HENRIK_API_KEY && newId) {
+  if (isAdmin && HENRIK_API_KEY && newId && !rankData) {
+    // only needed if the pre-check above failed/skipped, otherwise
+    // we already have fresh rank data saved with the entry.
     checkRankFor(newId, username, tag).catch(e => {
       console.warn('Auto rank check failed for new entry:', e.message);
     });
