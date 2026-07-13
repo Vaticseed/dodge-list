@@ -330,7 +330,7 @@
 
   <header>
     <h1>DODGE<span>_</span>LIST</h1>
-    <p class="sub">Contact an admin on Discord to add or remove someone from the dodge list.</p>
+    <p class="sub">Contact an admin on Discord to add someone to the dodge list.</p>
     <div class="admin-discord-row" id="admin-discord-row"></div>
     <div class="stat-row">
       <div><div class="stat-num" id="stat-total">0</div><div class="stat-label">Entries</div></div>
@@ -434,7 +434,7 @@ function saveLocal(entries){ localStorage.setItem(LOCAL_KEY, JSON.stringify(entr
    Edit this list to add/remove who shows up as an admin to
    contact. Just add or remove names in the array below.
    ============================================================ */
-const ADMIN_DISCORDS = ['lovewnl', 'benjyvv'];
+const ADMIN_DISCORDS = ['lovewnl'];
 
 const adminDiscordRow = document.getElementById('admin-discord-row');
 adminDiscordRow.innerHTML = ADMIN_DISCORDS.map(name => `<span class="discord-pill">${escapeHtml(name)}</span>`).join('');
@@ -476,7 +476,6 @@ function render(){
       <div class="meta-row">
         <span>${date}</span>
         <span class="meta-actions">
-          ${isAdmin ? `<span data-action="verify" data-id="${e.id}" style="color:#4ade80;">${e.verified ? 'Unverify' : 'Verify'}</span>` : ''}
           ${isAdmin ? `<span data-action="delete" data-id="${e.id}" style="color:var(--accent);">Delete</span>` : ''}
         </span>
       </div>
@@ -484,9 +483,6 @@ function render(){
     listEl.appendChild(card);
   });
 
-  listEl.querySelectorAll('[data-action="verify"]').forEach(el=>{
-    el.addEventListener('click', ()=> toggleVerified(el.getAttribute('data-id')));
-  });
   listEl.querySelectorAll('[data-action="delete"]').forEach(el=>{
     el.addEventListener('click', ()=> deleteEntry(el.getAttribute('data-id')));
   });
@@ -500,25 +496,12 @@ function escapeHtml(str){
 
 async function addEntry(entry){
   entry.createdAt = Date.now();
-  entry.verified = false;
+  entry.verified = true;
   if (useFirebase) {
     await addDoc(collection(db, 'entries'), entry);
   } else {
     entry.id = 'e' + Math.random().toString(36).slice(2,10);
     entries.push(entry);
-    saveLocal(entries);
-    render();
-  }
-}
-
-async function toggleVerified(id){
-  if (!isAdmin) return;
-  if (useFirebase) {
-    const target = entries.find(e=>e.id===id);
-    await updateDoc(doc(db, 'entries', id), { verified: !target.verified });
-  } else {
-    const target = entries.find(e=>e.id===id);
-    if (target) target.verified = !target.verified;
     saveLocal(entries);
     render();
   }
