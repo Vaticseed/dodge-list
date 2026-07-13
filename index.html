@@ -266,11 +266,13 @@
   }
   .entry::before{top:-1px;left:-1px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);}
   .entry::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent);}
-  .entry-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;}
+  .entry-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;padding-right:60px;}
   .tag{
     font-family:'JetBrains Mono',monospace;
     font-size:17px;font-weight:700;
     color:var(--text);
+    direction:ltr;
+    unicode-bidi:embed;
   }
   .tag .hash{color:var(--accent);}
   .badge{
@@ -298,6 +300,15 @@
   }
   .rank-tag:hover{color:var(--text) !important;}
   .rank-tag img{width:16px;height:16px;}
+
+  /* ---- Big rank icon, top-right of card ---- */
+  .rank-icon-large{
+    position:absolute;
+    top:14px;right:16px;
+    width:52px;height:52px;
+    filter:drop-shadow(0 0 10px rgba(255,255,255,0.15));
+    z-index:2;
+  }
 
   footer{margin-top:50px;text-align:center;font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
   footer a{color:var(--cyan);text-decoration:none;}
@@ -415,11 +426,11 @@
     <div class="grid2">
       <div>
         <label class="field-label">Username</label>
-        <input id="in-username" type="text" placeholder="PlayerName">
+        <input id="in-username" type="text" placeholder="PlayerName" style="direction:ltr;unicode-bidi:embed;">
       </div>
       <div>
         <label class="field-label">Tag</label>
-        <input id="in-tag" type="text" placeholder="1337">
+        <input id="in-tag" type="text" placeholder="1337" style="direction:ltr;unicode-bidi:embed;">
       </div>
     </div>
     <label class="field-label">Reason (optional)</label>
@@ -540,19 +551,21 @@ function render(){
       ? '<span class="badge verified-badge">Verified</span>'
       : '';
 
-    let rankBlock = '';
+    let rankIconHtml = '';
+    let rankAction = '';
     if (HENRIK_API_KEY) {
       if (rankLoadingIds.has(e.id)) {
-        rankBlock = `<span class="rank-tag">Checking...</span>`;
+        rankAction = `<span class="rank-tag">Checking...</span>`;
       } else if (e.rank) {
-        rankBlock = `<span class="rank-tag">${e.rankImage ? `<img src="${e.rankImage}" alt="">` : ''}${escapeHtml(e.rank)}</span>`;
-        if (isAdmin) rankBlock += `<span data-action="check-rank" data-id="${e.id}" style="color:var(--text-dim);">Refresh</span>`;
+        if (e.rankImage) rankIconHtml = `<img class="rank-icon-large" src="${e.rankImage}" alt="${escapeHtml(e.rank)}" title="${escapeHtml(e.rank)}">`;
+        if (isAdmin) rankAction = `<span data-action="check-rank" data-id="${e.id}" style="color:var(--text-dim);">Refresh</span>`;
       } else if (isAdmin) {
-        rankBlock = `<span data-action="check-rank" data-id="${e.id}" style="color:var(--cyan);">Check Rank</span>`;
+        rankAction = `<span data-action="check-rank" data-id="${e.id}" style="color:var(--cyan);">Check Rank</span>`;
       }
     }
 
     card.innerHTML = `
+      ${rankIconHtml}
       <div class="entry-top">
         <div class="tag">${escapeHtml(e.username)}<span class="hash">#</span>${escapeHtml(e.tag)}</div>
         ${badge}
@@ -561,7 +574,7 @@ function render(){
       <div class="meta-row">
         <span>${date}</span>
         <span class="meta-actions">
-          ${rankBlock}
+          ${rankAction}
           ${isAdmin ? `<span data-action="delete" data-id="${e.id}" style="color:var(--accent);">Delete</span>` : ''}
         </span>
       </div>
