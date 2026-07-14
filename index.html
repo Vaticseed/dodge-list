@@ -139,6 +139,8 @@
   }
   .tab-btn:hover{color:var(--text-muted);}
   .tab-btn.active{background:var(--panel);color:var(--accent);}
+  #tab-pending{color:var(--gold);}
+  #tab-pending.active{color:var(--gold);}
   .tab-row + .controls{border-top:1px solid var(--line);padding-top:20px;}
 
   /* ---- Search + Add bar ---- */
@@ -445,7 +447,7 @@
 
   <div class="contact-card">
     <div class="contact-text">
-      <p class="contact-title">Want someone added or removed?</p>
+      <p class="contact-title">Want someone removed?</p>
       <p class="contact-sub">Message an admin on Discord and they'll review the request.</p>
     </div>
     <div class="admin-discord-row" id="admin-discord-row"></div>
@@ -456,6 +458,7 @@
   <div class="tab-row">
     <button class="tab-btn active" data-tab="cheater" id="tab-cheater">Cheaters</button>
     <button class="tab-btn" data-tab="dodge" id="tab-dodge">Dodge List</button>
+    <button class="tab-btn" data-tab="pending" id="tab-pending" style="display:none;">Pending Review</button>
   </div>
 
   <div class="controls">
@@ -550,6 +553,11 @@ if (FIREBASE_CONFIG) {
       document.getElementById('admin-btn-label').textContent = isAdmin ? 'Admin ✓' : 'Admin';
       document.getElementById('admin-toggle-btn').classList.toggle('is-admin', isAdmin);
       document.getElementById('manage-protected-btn').style.display = isAdmin ? 'flex' : 'none';
+      document.getElementById('tab-pending').style.display = isAdmin ? 'inline-block' : 'none';
+      if (!isAdmin && activeTab === 'pending') {
+        activeTab = 'cheater';
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.id === 'tab-cheater'));
+      }
       updateAddAccess();
       if (!isAdmin) {
         document.getElementById('add-panel').classList.remove('open');
@@ -580,7 +588,7 @@ let entries = [];
 let activeTab = 'cheater';
 
 function updateAddAccess(){
-  document.getElementById('toggle-add').style.display = 'inline-flex';
+  document.getElementById('toggle-add').style.display = activeTab === 'pending' ? 'none' : 'inline-flex';
   document.getElementById('type-field-wrap').style.display = isAdmin ? 'block' : 'none';
   const listName = activeTab === 'cheater' ? 'the Cheaters list' : 'the Dodge List';
   document.getElementById('add-panel-title').textContent = isAdmin ? 'File a report' : `Report a player to ${listName} (unverified until an admin checks it)`;
@@ -591,7 +599,9 @@ function render(){
   const emptyEl = document.getElementById('empty-state');
   const q = document.getElementById('search').value.trim().toLowerCase();
 
-  const tabEntries = entries.filter(e => (e.type || 'dodge') === activeTab);
+  const tabEntries = activeTab === 'pending'
+    ? entries.filter(e => !e.verified)
+    : entries.filter(e => (e.type || 'dodge') === activeTab && e.verified);
 
   const filtered = tabEntries
     .slice()
@@ -611,7 +621,7 @@ function render(){
     });
 
   document.getElementById('stat-total').textContent = tabEntries.length;
-  document.getElementById('stat-label').textContent = activeTab === 'cheater' ? 'Cheaters' : 'Entries';
+  document.getElementById('stat-label').textContent = activeTab === 'pending' ? 'Pending' : activeTab === 'cheater' ? 'Cheaters' : 'Entries';
 
 
   listEl.innerHTML = '';
@@ -624,6 +634,9 @@ function render(){
       ? '<span class="badge verified-badge">Verified</span>'
       : '<span class="badge pending-badge">Unverified</span>';
     const pinBadge = e.pinned ? '<span class="badge pinned-badge">📌 Pinned</span>' : '';
+    const listBadge = activeTab === 'pending'
+      ? `<span class="badge">${(e.type || 'dodge') === 'cheater' ? 'Cheaters' : 'Dodge List'}</span>`
+      : '';
 
     let rankIconHtml = '';
     let rankAction = '';
@@ -646,6 +659,7 @@ function render(){
       <div class="entry-top">
         <div class="tag"><bdi>${escapeHtml(e.username)}</bdi><span class="hash">#</span><bdi>${escapeHtml(e.tag)}</bdi></div>
         <div class="entry-top-right">
+          ${listBadge}
           ${pinBadge}
           ${badge}
           ${rankIconHtml}
@@ -916,10 +930,12 @@ document.getElementById('search').addEventListener('input', render);
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    if (btn.id === 'tab-pending' && !isAdmin) return;
     activeTab = btn.getAttribute('data-tab');
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b === btn));
     const typeSelect = document.getElementById('in-type');
-    if (typeSelect) typeSelect.value = activeTab;
+    if (typeSelect && activeTab !== 'pending') typeSelect.value = activeTab;
+    if (activeTab === 'pending') document.getElementById('add-panel').classList.remove('open');
     updateAddAccess();
     render();
   });
@@ -1018,7 +1034,7 @@ document.getElementById('submit-add').addEventListener('click', async ()=>{
   document.getElementById('in-tag').value = '';
   document.getElementById('in-reason').value = '';
   addPanel.classList.remove('open');
-  if (!isAdmin) alert('Thanks, your report was submitted. An admin will review and verify it.');
+  if (!isAdmin) alert("Thanks, your report was submitted. It won't be visible to others until an admin reviews it, they'll verify or deny it soon.");
 });
 
 
