@@ -135,7 +135,22 @@
   .discord-pill::before{display:none;}
 
   /* ---- Tabs, folder-tab metaphor: two case files ---- */
-  .tab-row{display:flex;gap:2px;margin-bottom:0;}
+  .tab-row{display:flex;align-items:center;gap:2px;margin-bottom:0;}
+  .rank-filter{
+    margin-left:auto;
+    width:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    background:var(--ink);
+    border:1px solid var(--line);
+    color:var(--text-muted);
+    padding:8px 10px;
+    border-radius:var(--radius);
+    cursor:pointer;
+    align-self:center;
+    margin-bottom:1px;
+  }
+  .rank-filter:focus{border-color:var(--info);}
   .tab-btn{
     font-family:'Oswald',sans-serif;
     font-weight:600;
@@ -459,6 +474,8 @@
     .header-right{text-align:left;}
     .entry{padding-left:50px;}
     .entry::before{left:6px;width:32px;font-size:16px;}
+    .tab-row{flex-wrap:wrap;row-gap:8px;}
+    .rank-filter{margin-left:0;width:100%;}
   }
 </style>
 </head>
@@ -534,6 +551,15 @@
     <button class="tab-btn active" data-tab="cheater" id="tab-cheater">Cheaters</button>
     <button class="tab-btn" data-tab="dodge" id="tab-dodge">Dodge List</button>
     <button class="tab-btn" data-tab="pending" id="tab-pending" style="display:none;">Pending Review<span id="pending-count-badge" class="pending-count-badge" style="display:none;"></span></button>
+    <select id="rank-filter" class="rank-filter">
+      <option value="all">All Ranks</option>
+      <option value="diamond">Diamond</option>
+      <option value="ascendant">Ascendant</option>
+      <option value="immortal1">Immortal 1</option>
+      <option value="immortal2">Immortal 2</option>
+      <option value="immortal3">Immortal 3</option>
+      <option value="radiant">Radiant</option>
+    </select>
   </div>
 
   <div class="controls">
@@ -689,6 +715,16 @@ adminDiscordRow.innerHTML = ADMIN_DISCORDS.map(name => `<span class="discord-pil
 let entries = [];
 let activeTab = 'cheater';
 
+// HenrikDev's numeric currenttier values grouped into rank bands.
+const RANK_TIER_RANGES = {
+  diamond: [18, 20],
+  ascendant: [21, 23],
+  immortal1: [24, 24],
+  immortal2: [25, 25],
+  immortal3: [26, 26],
+  radiant: [27, 27],
+};
+
 function updateAddAccess(){
   document.getElementById('toggle-add').style.display = activeTab === 'pending' ? 'none' : 'inline-flex';
   document.getElementById('type-field-wrap').style.display = isAdmin ? 'block' : 'none';
@@ -710,9 +746,15 @@ function render(){
     pendingBadge.style.display = 'none';
   }
 
-  const tabEntries = activeTab === 'pending'
+  const tabEntries0 = activeTab === 'pending'
     ? entries.filter(e => !e.verified)
     : entries.filter(e => (e.type || 'dodge') === activeTab && e.verified);
+
+  const rankFilterValue = document.getElementById('rank-filter').value;
+  const rankRange = RANK_TIER_RANGES[rankFilterValue];
+  const tabEntries = rankRange
+    ? tabEntries0.filter(e => typeof e.rankTier === 'number' && e.rankTier >= rankRange[0] && e.rankTier <= rankRange[1])
+    : tabEntries0;
 
   const filtered = tabEntries
     .slice()
@@ -778,8 +820,8 @@ function render(){
       </div>
       ${e.reason || isAdmin ? `
         <div class="reason-row">
-          <div class="reason">${e.reason ? escapeHtml(e.reason) : (isAdmin ? '<span style="color:var(--text-dim);font-style:italic;">No description</span>' : '')}</div>
           ${isAdmin ? `<span class="edit-reason-btn" data-action="edit-reason" data-id="${e.id}" title="Edit description">✎</span>` : ''}
+          <div class="reason">${e.reason ? escapeHtml(e.reason) : (isAdmin ? '<span style="color:var(--text-dim);font-style:italic;">No description</span>' : '')}</div>
         </div>
       ` : ''}
       ${e.imageUrl ? `
@@ -1082,6 +1124,7 @@ updateAddAccess();
 
 /* ---- UI wiring ---- */
 document.getElementById('search').addEventListener('input', render);
+document.getElementById('rank-filter').addEventListener('change', render);
 
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
