@@ -5,224 +5,180 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DODGE LIST // Player Watch Database</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg-deep:#0a0d10;
-    --bg-panel:#12171c;
-    --bg-panel-2:#161d23;
-    --line:#232b31;
-    --accent:#ff4655;
-    --accent-dim:#7a2530;
-    --cyan:#3edbd3;
-    --text:#e8ecef;
-    --text-muted:#6b7680;
-    --text-dim:#3f484f;
-    --radius:2px;
+    --ink:#14110D;
+    --panel:#1D1811;
+    --panel-2:#221C14;
+    --line:#37301F;
+    --accent:#FF4655;
+    --accent-dim:#7A2530;
+    --gold:#E8B339;
+    --info:#5EA9A0;
+    --good:#5FBF77;
+    --text:#F3EEE4;
+    --text-muted:#A89B87;
+    --text-dim:#5C5245;
+    --radius:0px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background:var(--bg-deep);
-    background-image:
-      linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
-    background-size:32px 32px;
+    background:var(--ink);
     color:var(--text);
     font-family:'Inter',sans-serif;
     min-height:100vh;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:920px;margin:0 auto;padding:0 20px 80px;}
 
-  /* ---- Header / HUD boot ---- */
+  /* one signature accent, used once at the very top of the page */
+  .hazard-strip{
+    height:5px;
+    width:100%;
+    background:repeating-linear-gradient(
+      -45deg,
+      var(--gold) 0 10px,
+      var(--ink) 10px 20px
+    );
+    opacity:0.5;
+  }
+
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px 80px;}
+
+  /* ---- Header ---- */
   header{
-    padding:36px 0 24px;
+    padding:28px 0 20px;
     border-bottom:1px solid var(--line);
-    margin-bottom:28px;
-    position:relative;
+    margin-bottom:20px;
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:20px;
+    flex-wrap:wrap;
   }
-  .eyebrow{
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    letter-spacing:0.18em;
-    color:var(--cyan);
+  .header-left{display:flex;flex-direction:column;gap:4px;}
+  .site-logo{height:clamp(36px,5.5vw,52px);width:auto;display:block;}
+  .header-right{text-align:right;font-family:'JetBrains Mono',monospace;}
+  .header-right .num{
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:34px;
+    line-height:1;
+    color:var(--text);
+  }
+  .header-right .lbl{
+    font-size:10px;
+    letter-spacing:0.16em;
     text-transform:uppercase;
-    display:flex;
-    align-items:center;
-    gap:8px;
-    margin-bottom:10px;
+    color:var(--text-dim);
+    margin-top:2px;
   }
-  .eyebrow::before{
-    content:'';
-    width:7px;height:7px;
-    background:var(--cyan);
-    box-shadow:0 0 8px var(--cyan);
-    border-radius:50%;
-    animation:pulse 1.6s infinite ease-in-out;
-  }
-  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.25;}}
-  .site-logo{
-    display:block;
-    height:clamp(40px,6vw,64px);
-    width:auto;
-    margin:0 0 6px;
-  }
-  h1 span{color:var(--accent);}
-  .sub{color:var(--text-muted);font-size:14px;max-width:560px;line-height:1.5;}
-  .stat-row{
-    display:flex;gap:28px;margin-top:20px;
-    font-family:'JetBrains Mono',monospace;
-  }
-  .stat-num{font-size:22px;color:var(--text);font-weight:700;}
-  .stat-label{font-size:10px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;}
 
-  /* ---- Admin discord callout ---- */
+  /* ---- Contact ticket strip ---- */
   .contact-card{
-    margin-top:22px;
-    background:linear-gradient(135deg, rgba(88,101,242,0.10), rgba(88,101,242,0.02));
-    border:1px solid rgba(88,101,242,0.35);
-    border-radius:var(--radius);
-    padding:18px 20px;
+    margin-bottom:22px;
+    border:1px solid var(--line);
+    border-left:3px solid var(--gold);
+    background:var(--panel);
+    padding:14px 18px;
     display:flex;
     align-items:center;
+    justify-content:space-between;
     gap:16px;
     flex-wrap:wrap;
-    position:relative;
-    overflow:hidden;
   }
-  .contact-card::before{
-    content:'';
-    position:absolute;
-    top:0;left:0;
-    width:3px;height:100%;
-    background:#5865F2;
-    box-shadow:0 0 12px #5865F2;
-  }
-  .contact-icon{
-    width:38px;height:38px;
-    flex-shrink:0;
-    display:flex;align-items:center;justify-content:center;
-    background:rgba(88,101,242,0.15);
-    border:1px solid rgba(88,101,242,0.4);
-    border-radius:50%;
-  }
-  .contact-icon svg{width:19px;height:19px;}
-  .contact-text{flex:1;min-width:180px;}
+  .contact-icon{display:none;}
+  .contact-text{display:flex;flex-direction:column;gap:2px;}
   .contact-title{
-    font-family:'Chakra Petch',sans-serif;
-    font-weight:700;
-    font-size:15px;
-    color:var(--text);
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:14px;
+    letter-spacing:0.02em;
     text-transform:uppercase;
-    letter-spacing:0.03em;
-    margin:0 0 3px;
-  }
-  .contact-sub{
-    font-size:12.5px;
-    color:var(--text-muted);
+    color:var(--text);
     margin:0;
   }
-  .admin-discord-row{
-    display:flex;
-    flex-wrap:wrap;
-    gap:8px;
-  }
+  .contact-sub{font-size:12.5px;color:var(--text-muted);margin:0;}
+  .admin-discord-row{display:flex;flex-wrap:wrap;gap:8px;}
   .discord-pill{
-    display:inline-flex;
-    align-items:center;
-    gap:7px;
-    background:rgba(88,101,242,0.14);
-    border:1px solid rgba(88,101,242,0.5);
-    color:var(--text);
+    display:inline-flex;align-items:center;gap:7px;
+    background:transparent;
+    border:1px solid var(--info);
+    color:var(--info);
     font-family:'JetBrains Mono',monospace;
-    font-weight:600;
-    font-size:13px;
-    padding:10px 16px;
+    font-weight:600;font-size:12.5px;
+    padding:8px 14px;
     border-radius:var(--radius);
     text-decoration:none;
     cursor:pointer;
     white-space:nowrap;
-    transition:background .15s, transform .1s;
+    transition:background .15s;
   }
-  .discord-pill:hover{background:rgba(88,101,242,0.26);transform:translateY(-1px);}
-  .discord-pill::before{
-    content:'';
-    width:7px;height:7px;
-    border-radius:50%;
-    background:#5865F2;
-    box-shadow:0 0 6px #5865F2;
-  }
+  .discord-pill:hover{background:rgba(94,169,160,0.14);}
+  .discord-pill::before{display:none;}
 
-  /* ---- Disclaimer ---- */
-  .notice{
-    background:var(--bg-panel);
-    border:1px solid var(--line);
-    border-left:2px solid var(--cyan);
-    padding:14px 16px;
-    font-size:12.5px;
-    color:var(--text-muted);
-    line-height:1.6;
-    margin-bottom:28px;
-    border-radius:var(--radius);
-  }
-  .notice strong{color:var(--text);}
-
-  /* ---- Search + Add bar ---- */
-  .tab-row{display:flex;gap:8px;margin-bottom:20px;}
+  /* ---- Tabs, folder-tab metaphor: two case files ---- */
+  .tab-row{display:flex;gap:2px;margin-bottom:0;}
   .tab-btn{
-    font-family:'Chakra Petch',sans-serif;
+    font-family:'Oswald',sans-serif;
     font-weight:600;
     font-size:13px;
-    letter-spacing:0.05em;
+    letter-spacing:0.06em;
     text-transform:uppercase;
-    background:transparent;
+    background:var(--ink);
     border:1px solid var(--line);
-    color:var(--text-muted);
-    padding:10px 20px;
-    border-radius:var(--radius);
+    border-bottom:none;
+    color:var(--text-dim);
+    padding:11px 22px 9px;
+    border-radius:0;
     cursor:pointer;
-    transition:border-color .15s, color .15s, background .15s;
-  }
-  .tab-btn:hover{color:var(--text);border-color:var(--text-muted);}
-  .tab-btn.active{
-    background:rgba(255,70,85,0.1);
-    border-color:var(--accent);
-    color:var(--accent);
-  }
-  .controls{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-  .scan-box{
-    flex:1;min-width:220px;
     position:relative;
-    display:flex;align-items:center;
+    top:1px;
+    transition:color .15s;
   }
-  .scan-box::before{
-    content:'';
-    position:absolute;left:14px;top:50%;transform:translateY(-50%);
-    width:8px;height:8px;
-    border-left:2px solid var(--cyan);
-    border-bottom:2px solid var(--cyan);
-    opacity:0.6;
+  .tab-btn:hover{color:var(--text-muted);}
+  .tab-btn.active{background:var(--panel);color:var(--accent);}
+  .tab-row + .controls{border-top:1px solid var(--line);padding-top:20px;}
+
+  /* ---- Search + Add bar ---- */
+  .controls{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+  .scan-box{flex:1;min-width:220px;}
+  .scan-box::before{display:none;}
+  .scan-box input{
+    font-family:'JetBrains Mono',monospace;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--line);
+    color:var(--text);
+    padding:11px 2px;
+    font-size:14px;
+    width:100%;
+    outline:none;
+    border-radius:0;
   }
+  .scan-box input:focus{border-color:var(--info);}
+  .scan-box input::placeholder{color:var(--text-dim);}
+
   input, textarea, select{
     font-family:'JetBrains Mono',monospace;
-    background:var(--bg-panel);
+    background:var(--ink);
     border:1px solid var(--line);
     color:var(--text);
-    padding:13px 14px 13px 32px;
+    padding:11px 12px;
     font-size:14px;
     width:100%;
     border-radius:var(--radius);
     outline:none;
     transition:border-color .15s;
   }
-  select{padding-left:14px;cursor:pointer;}
-  textarea{font-family:'Inter',sans-serif;padding-left:14px;resize:vertical;min-height:64px;}
-  input:focus, textarea:focus{border-color:var(--cyan);}
+  select{cursor:pointer;}
+  textarea{font-family:'Inter',sans-serif;resize:vertical;min-height:64px;}
+  input:focus, textarea:focus, select:focus{border-color:var(--info);}
   input::placeholder, textarea::placeholder{color:var(--text-dim);}
 
   button{
-    font-family:'Chakra Petch',sans-serif;
+    font-family:'Oswald',sans-serif;
     font-weight:600;
     letter-spacing:0.04em;
     text-transform:uppercase;
@@ -235,7 +191,7 @@
   button:active{transform:scale(0.97);}
   .btn-primary{
     background:var(--accent);
-    color:#150507;
+    color:#180608;
     padding:13px 22px;
     white-space:nowrap;
   }
@@ -250,7 +206,7 @@
 
   /* ---- Add form (collapsible) ---- */
   .add-panel{
-    background:var(--bg-panel);
+    background:var(--panel);
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:20px;
@@ -259,39 +215,57 @@
   }
   .add-panel.open{display:block;}
   .add-panel h3{
-    font-family:'Chakra Petch',sans-serif;
-    font-size:14px;letter-spacing:0.1em;text-transform:uppercase;
-    color:var(--accent);margin:0 0 14px;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:14px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--text);
+    margin:0 0 14px;
+    padding-bottom:12px;
+    border-bottom:1px solid var(--line);
   }
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
-  .grid2 input:last-child{}
   .field-label{font-size:10px;color:var(--text-dim);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:5px;display:block;}
   .form-actions{display:flex;gap:10px;margin-top:14px;justify-content:flex-end;}
 
-  /* ---- List ---- */
+  /* ---- Roster list ---- */
   #empty-state{
     text-align:center;padding:60px 20px;color:var(--text-dim);
     font-family:'JetBrains Mono',monospace;font-size:13px;
   }
+  #list{counter-reset: rownum;}
   .entry{
+    counter-increment: rownum;
     position:relative;
-    background:var(--bg-panel);
-    border:1px solid var(--line);
-    padding:18px 20px;
-    margin-bottom:10px;
-    border-radius:var(--radius);
+    background:transparent;
+    border-bottom:1px solid var(--line);
+    padding:16px 14px 16px 62px;
+    margin-bottom:0;
+    border-radius:0;
   }
-  .entry::before, .entry::after{
-    content:'';position:absolute;width:10px;height:10px;
-    border-color:var(--accent-dim);opacity:0.9;
+  .entry::before{
+    content: counter(rownum, decimal-leading-zero);
+    position:absolute;
+    left:10px;top:16px;
+    width:38px;
+    text-align:right;
+    font-family:'Oswald',sans-serif;
+    font-weight:500;font-style:italic;
+    font-size:19px;
+    color:var(--text-dim);
   }
-  .entry::before{top:-1px;left:-1px;border-top:2px solid var(--accent);border-left:2px solid var(--accent);}
-  .entry::after{bottom:-1px;right:-1px;border-bottom:2px solid var(--accent);border-right:2px solid var(--accent);}
+  .entry.pinned::before{color:var(--gold);}
+  .entry::after{
+    content:'';
+    position:absolute;left:0;top:0;bottom:0;width:3px;
+    background:transparent;
+  }
+  .entry.pinned::after{background:var(--gold);}
+  .entry.pending::after{background:repeating-linear-gradient(var(--text-dim) 0 4px, transparent 4px 8px);}
   .entry-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
   .entry-top-right{display:flex;align-items:center;gap:10px;}
   .tag{
     font-family:'JetBrains Mono',monospace;
-    font-size:17px;font-weight:700;
+    font-size:16px;font-weight:700;
     color:var(--text);
     direction:ltr;
     unicode-bidi:isolate;
@@ -299,22 +273,20 @@
   }
   .tag .hash{color:var(--accent);}
   .badge{
-    font-family:'JetBrains Mono',monospace;
-    font-size:9.5px;letter-spacing:0.1em;
-    padding:3px 7px;border-radius:2px;
+    font-family:'Oswald',sans-serif;
+    font-size:10px;font-weight:600;letter-spacing:0.08em;
+    padding:3px 8px;border-radius:0;
     text-transform:uppercase;
     border:1px solid var(--text-dim);
     color:var(--text-dim);
   }
-  .badge.verified-badge{color:#4ade80;border-color:#4ade80;}
-  .badge.pending-badge{color:#facc15;border-color:#facc15;}
-  .badge.pinned-badge{color:#facc15;border-color:#facc15;background:rgba(250,204,21,0.1);}
-  .entry.pending{border-color:rgba(250,204,21,0.35);}
-  .entry.pinned{border-color:rgba(250,204,21,0.6);box-shadow:0 0 0 1px rgba(250,204,21,0.15);}
-  .reason{color:var(--text-muted);font-size:13.5px;margin-top:8px;line-height:1.5;}
+  .badge.verified-badge{color:var(--good);border-color:var(--good);}
+  .badge.pending-badge{color:var(--gold);border-color:var(--gold);}
+  .badge.pinned-badge{color:var(--gold);border-color:var(--gold);background:rgba(232,179,57,0.08);}
+  .reason{color:var(--text-muted);font-size:13px;margin-top:6px;line-height:1.5;}
   .meta-row{
     display:flex;justify-content:space-between;align-items:center;
-    margin-top:12px;padding-top:12px;border-top:1px solid var(--line);
+    margin-top:10px;padding-top:0;border-top:none;
     font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-dim);
   }
   .meta-actions{display:flex;gap:14px;align-items:center;}
@@ -322,18 +294,18 @@
   .profile-links a{
     display:inline-flex;
     align-items:center;
-    font-size:11.5px;
+    font-size:11px;
     font-weight:700;
-    letter-spacing:0.03em;
-    color:var(--cyan);
-    background:rgba(62,219,211,0.1);
-    border:1px solid rgba(62,219,211,0.4);
-    padding:5px 10px;
+    letter-spacing:0.02em;
+    color:var(--info);
+    background:transparent;
+    border:1px solid var(--info);
+    padding:4px 9px;
     border-radius:var(--radius);
     text-decoration:none;
-    transition:background .15s, transform .1s;
+    transition:background .15s;
   }
-  .profile-links a:hover{background:rgba(62,219,211,0.22);transform:translateY(-1px);}
+  .profile-links a:hover{background:rgba(94,169,160,0.14);}
   .meta-actions span{cursor:pointer;transition:color .15s;}
   .meta-actions span:hover{color:var(--accent);}
   .rank-tag{
@@ -344,15 +316,14 @@
   .rank-tag:hover{color:var(--text) !important;}
   .rank-tag img{width:16px;height:16px;}
 
-  /* ---- Big rank icon, top-right of card ---- */
   .rank-icon-large{
-    width:38px;height:38px;
-    filter:drop-shadow(0 0 8px rgba(255,255,255,0.15));
+    width:34px;height:34px;
+    filter:drop-shadow(0 0 6px rgba(0,0,0,0.4));
     flex-shrink:0;
   }
 
   footer{margin-top:50px;text-align:center;font-size:11px;color:var(--text-dim);font-family:'JetBrains Mono',monospace;}
-  footer a{color:var(--cyan);text-decoration:none;}
+  footer a{color:var(--info);text-decoration:none;}
 
   /* ---- Admin corner (top-left) ---- */
   .admin-corner{
@@ -362,7 +333,7 @@
     font-family:'JetBrains Mono',monospace;
   }
   .admin-btn{
-    background:var(--bg-panel);
+    background:var(--panel);
     border:1px solid var(--line);
     color:var(--text-dim);
     font-family:'JetBrains Mono',monospace;
@@ -376,44 +347,51 @@
     transition:border-color .15s, color .15s;
   }
   .admin-btn:hover{border-color:var(--text-muted);color:var(--text);}
-  .admin-btn.is-admin{border-color:var(--cyan);color:var(--cyan);}
+  .admin-btn.is-admin{border-color:var(--good);color:var(--good);}
   .admin-btn .dot{width:6px;height:6px;border-radius:50%;background:var(--text-dim);}
-  .admin-btn.is-admin .dot{background:var(--cyan);box-shadow:0 0 6px var(--cyan);}
+  .admin-btn.is-admin .dot{background:var(--good);box-shadow:0 0 6px var(--good);}
   .admin-dropdown{
     display:none;
     position:absolute;
     top:calc(100% + 8px);left:0;
     width:260px;
-    background:var(--bg-panel);
+    background:var(--panel);
     border:1px solid var(--line);
     border-radius:var(--radius);
     padding:16px;
-    box-shadow:0 8px 24px rgba(0,0,0,0.4);
+    box-shadow:0 8px 24px rgba(0,0,0,0.5);
   }
   .admin-dropdown.open{display:block;}
+  #protected-panel{position:static;}
+  #protected-list-ui{max-height:220px;overflow-y:auto;}
   .admin-dropdown h3{
-    font-family:'Chakra Petch',sans-serif;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
     font-size:12px;letter-spacing:0.1em;text-transform:uppercase;
     color:var(--accent);margin:0 0 12px;
   }
   .admin-dropdown input{font-size:13px;padding:10px 12px;}
   .admin-dropdown .field-label{margin-top:0;}
   .admin-dropdown .form-actions{margin-top:12px;}
-  .admin-dropdown .sub{font-size:12px;margin:0 0 10px;}
+  .admin-dropdown .sub{font-size:12px;margin:0 0 10px;color:var(--text-muted);}
 
   @media(max-width:520px){
     .grid2{grid-template-columns:1fr;}
     .controls{flex-direction:column;}
+    header{align-items:flex-start;}
+    .header-right{text-align:left;}
+    .entry{padding-left:50px;}
+    .entry::before{left:6px;width:32px;font-size:16px;}
   }
 </style>
 </head>
 <body>
 
-<div class="admin-corner">
+<div class="admin-corner" id="admin-login-corner">
   <button class="admin-btn" id="admin-toggle-btn"><span class="dot"></span><span id="admin-btn-label">Admin</span></button>
   <div class="admin-dropdown" id="admin-dropdown">
     <div id="admin-login-fields">
-      <h3>// Admin login</h3>
+      <h3>Admin login</h3>
       <label class="field-label">Email</label>
       <input id="admin-email" type="email" placeholder="you@example.com" autocomplete="username">
       <div style="height:10px;"></div>
@@ -425,11 +403,29 @@
       </div>
     </div>
     <div id="admin-logged-in" style="display:none;">
-      <h3>// Admin</h3>
+      <h3>Admin</h3>
       <p class="sub">You're logged in. You can add entries and delete any entry.</p>
-      <div class="form-actions">
+      <div class="form-actions" style="justify-content:space-between;">
+        <span id="manage-protected-link" style="cursor:pointer;color:var(--info);font-size:12px;align-self:center;">Manage protected accounts</span>
         <button class="btn-ghost" id="admin-logout-btn">Log out</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="admin-corner" id="protected-panel-wrap" style="left:auto;right:16px;">
+  <div class="admin-dropdown" id="protected-panel" style="width:300px;">
+    <h3>Protected accounts</h3>
+    <p class="sub">These Username#Tags can never be added to either list, by anyone.</p>
+    <div id="protected-list-ui" style="margin-bottom:14px;"></div>
+    <label class="field-label">Username</label>
+    <input id="protected-username" type="text" placeholder="PlayerName" dir="auto">
+    <div style="height:10px;"></div>
+    <label class="field-label">Tag</label>
+    <input id="protected-tag" type="text" placeholder="1337" dir="auto">
+    <div class="form-actions">
+      <button class="btn-ghost" id="protected-close">Close</button>
+      <button class="btn-primary" id="protected-add-btn">Add</button>
     </div>
   </div>
 </div>
@@ -437,23 +433,22 @@
 <div class="wrap">
 
   <header>
-    <img src="logo.png" alt="MENA Dodge List" class="site-logo">
-    <div class="contact-card">
-      <div class="contact-icon">
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 4h16v13l-4-3H4V4z" stroke="#5865F2" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="contact-text">
-        <p class="contact-title">Want someone added or removed?</p>
-        <p class="contact-sub">Message an admin on Discord and they'll review the request.</p>
-      </div>
-      <div class="admin-discord-row" id="admin-discord-row"></div>
+    <div class="header-left">
+      <img src="logo.png" alt="MENA Dodge List" class="site-logo">
     </div>
-    <div class="stat-row">
-      <div><div class="stat-num" id="stat-total">0</div><div class="stat-label" id="stat-label">Cheaters</div></div>
+    <div class="header-right">
+      <div class="num" id="stat-total">0</div>
+      <div class="lbl" id="stat-label">Cheaters</div>
     </div>
   </header>
+
+  <div class="contact-card">
+    <div class="contact-text">
+      <p class="contact-title">Want someone added or removed?</p>
+      <p class="contact-sub">Message an admin on Discord and they'll review the request.</p>
+    </div>
+    <div class="admin-discord-row" id="admin-discord-row"></div>
+  </div>
 
 
 
@@ -468,7 +463,7 @@
   </div>
 
   <div class="add-panel" id="add-panel">
-    <h3 id="add-panel-title">// File a report</h3>
+    <h3 id="add-panel-title">File a report</h3>
     <div class="grid2">
       <div>
         <label class="field-label">Username</label>
@@ -580,10 +575,10 @@ let entries = [];
 let activeTab = 'cheater';
 
 function updateAddAccess(){
-  const canAdd = isAdmin || activeTab === 'cheater';
-  document.getElementById('toggle-add').style.display = canAdd ? 'inline-flex' : 'none';
+  document.getElementById('toggle-add').style.display = 'inline-flex';
   document.getElementById('type-field-wrap').style.display = isAdmin ? 'block' : 'none';
-  document.getElementById('add-panel-title').textContent = isAdmin ? '// File a report' : '// Report a cheater (unverified until an admin checks it)';
+  const listName = activeTab === 'cheater' ? 'the Cheaters list' : 'the Dodge List';
+  document.getElementById('add-panel-title').textContent = isAdmin ? 'File a report' : `Report a player to ${listName} (unverified until an admin checks it)`;
 }
 
 function render(){
@@ -706,7 +701,78 @@ function duplicateKey(type, username, tag){
 
 class DuplicateEntryError extends Error {}
 
+/* ============================================================
+   PROTECTED ACCOUNTS
+   Username#Tag combos that can never be added to either list, by
+   anyone (including admins). Managed live from the admin panel on
+   the site, no code editing needed. Stored in Firestore under the
+   "protected" collection so it's enforced server-side too, not
+   just in this page's JavaScript.
+   ============================================================ */
+let protectedAccounts = [];
+
+function protectedDocId(username, tag){
+  return normalizePart(username) + '::' + normalizePart(tag);
+}
+
+function isProtectedAccount(username, tag){
+  return protectedAccounts.some(p =>
+    normalizePart(p.username) === normalizePart(username) &&
+    normalizePart(p.tag) === normalizePart(tag)
+  );
+}
+
+async function addProtectedAccount(username, tag){
+  if (!isAdmin) return;
+  const id = protectedDocId(username, tag);
+  if (useFirebase) {
+    await setDoc(doc(db, 'protected', id), { username, tag, createdAt: Date.now() });
+  } else {
+    if (!protectedAccounts.some(p => protectedDocId(p.username, p.tag) === id)) {
+      protectedAccounts.push({ id, username, tag });
+      saveProtectedLocal();
+      renderProtectedList();
+    }
+  }
+}
+
+async function removeProtectedAccount(id){
+  if (!isAdmin) return;
+  if (useFirebase) {
+    await deleteDoc(doc(db, 'protected', id));
+  } else {
+    protectedAccounts = protectedAccounts.filter(p => p.id !== id);
+    saveProtectedLocal();
+    renderProtectedList();
+  }
+}
+
+const PROTECTED_LOCAL_KEY = 'dodge-list-protected';
+function loadProtectedLocal(){ try{ return JSON.parse(localStorage.getItem(PROTECTED_LOCAL_KEY)) || []; }catch{ return []; } }
+function saveProtectedLocal(){ localStorage.setItem(PROTECTED_LOCAL_KEY, JSON.stringify(protectedAccounts)); }
+
+function renderProtectedList(){
+  const el = document.getElementById('protected-list-ui');
+  if (!el) return;
+  if (!protectedAccounts.length) {
+    el.innerHTML = `<p class="sub" style="margin:0;">No protected accounts yet.</p>`;
+    return;
+  }
+  el.innerHTML = protectedAccounts.map(p => `
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-size:12.5px;">
+      <span>${escapeHtml(p.username)}<span style="color:var(--accent);">#</span>${escapeHtml(p.tag)}</span>
+      <span data-remove-protected="${p.id}" style="cursor:pointer;color:var(--accent);font-size:11px;">Remove</span>
+    </div>
+  `).join('');
+  el.querySelectorAll('[data-remove-protected]').forEach(elm => {
+    elm.addEventListener('click', () => removeProtectedAccount(elm.getAttribute('data-remove-protected')));
+  });
+}
+
+class ProtectedAccountError extends Error {}
+
 async function addEntry(entry){
+  if (isProtectedAccount(entry.username, entry.tag)) throw new ProtectedAccountError();
   entry.createdAt = Date.now();
   entry.verified = !!entry.verified;
   const key = duplicateKey(entry.type || 'dodge', entry.username, entry.tag);
@@ -828,9 +894,15 @@ if (useFirebase) {
     entries = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     render();
   });
+  onSnapshot(collection(db, 'protected'), snap => {
+    protectedAccounts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderProtectedList();
+  });
 } else {
   entries = loadLocal();
+  protectedAccounts = loadProtectedLocal();
   render();
+  renderProtectedList();
 }
 updateAddAccess();
 
@@ -844,7 +916,6 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     const typeSelect = document.getElementById('in-type');
     if (typeSelect) typeSelect.value = activeTab;
     updateAddAccess();
-    if (!isAdmin && activeTab !== 'cheater') document.getElementById('add-panel').classList.remove('open');
     render();
   });
 });
@@ -874,9 +945,14 @@ document.getElementById('submit-add').addEventListener('click', async ()=>{
   let username = document.getElementById('in-username').value.trim();
   let tag = document.getElementById('in-tag').value.trim().replace(/^#/,'');
   const reason = document.getElementById('in-reason').value.trim();
-  const type = isAdmin ? document.getElementById('in-type').value : 'cheater';
+  const type = isAdmin ? document.getElementById('in-type').value : activeTab;
 
   if (!username || !tag) { alert('Username and tag are required.'); return; }
+
+  if (isProtectedAccount(username, tag)) {
+    alert(`${username}#${tag} can't be added to this list.`);
+    return;
+  }
 
   let rankData = null;
   if (HENRIK_API_KEY) {
@@ -917,6 +993,8 @@ document.getElementById('submit-add').addEventListener('click', async ()=>{
   } catch (e) {
     if (e instanceof DuplicateEntryError) {
       alert(`${username}#${tag} is already on the ${type === 'cheater' ? 'Cheaters' : 'Dodge'} list.`);
+    } else if (e instanceof ProtectedAccountError) {
+      alert(`${username}#${tag} can't be added to this list.`);
     } else {
       alert('Could not submit: ' + e.message);
     }
@@ -964,9 +1042,33 @@ document.getElementById('admin-logout-btn').addEventListener('click', async ()=>
   adminDropdown.classList.remove('open');
 });
 
+const protectedPanel = document.getElementById('protected-panel');
+document.getElementById('manage-protected-link').addEventListener('click', ()=>{
+  adminDropdown.classList.remove('open');
+  renderProtectedList();
+  protectedPanel.classList.add('open');
+});
+document.getElementById('protected-close').addEventListener('click', ()=>{
+  protectedPanel.classList.remove('open');
+});
+document.getElementById('protected-add-btn').addEventListener('click', async ()=>{
+  const username = document.getElementById('protected-username').value.trim();
+  const tag = document.getElementById('protected-tag').value.trim().replace(/^#/,'');
+  if (!username || !tag) { alert('Username and tag are required.'); return; }
+  try {
+    await addProtectedAccount(username, tag);
+    document.getElementById('protected-username').value = '';
+    document.getElementById('protected-tag').value = '';
+  } catch (e) {
+    alert('Could not add: ' + e.message);
+  }
+});
+
 document.addEventListener('click', (ev)=>{
-  const corner = document.querySelector('.admin-corner');
-  if (!corner.contains(ev.target)) adminDropdown.classList.remove('open');
+  const adminCorner = document.getElementById('admin-login-corner');
+  if (adminCorner && !adminCorner.contains(ev.target)) adminDropdown.classList.remove('open');
+  const protectedWrap = document.getElementById('protected-panel-wrap');
+  if (protectedWrap && !protectedWrap.contains(ev.target)) protectedPanel.classList.remove('open');
 });
 </script>
 </body>
