@@ -548,7 +548,10 @@
     <div id="image-field-wrap">
       <label class="field-label">Screenshot (optional, max 5MB)</label>
       <input id="in-image" type="file" accept="image/*">
-      <img id="in-image-preview" style="display:none;max-width:100%;max-height:160px;margin-top:8px;border:1px solid var(--line);">
+      <div id="in-image-preview-wrap" style="display:none;margin-top:8px;">
+        <img id="in-image-preview" style="max-width:100%;max-height:160px;display:block;border:1px solid var(--line);">
+        <span id="in-image-clear" style="display:inline-block;margin-top:6px;cursor:pointer;color:var(--accent);font-size:12px;font-family:'JetBrains Mono',monospace;">Remove screenshot</span>
+      </div>
     </div>
     <div id="type-field-wrap">
       <div style="height:10px;"></div>
@@ -1057,21 +1060,28 @@ if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_UPLOAD_PRESET) {
   document.getElementById('image-field-wrap').style.display = 'none';
 }
 
+function clearImageSelection(){
+  document.getElementById('in-image').value = '';
+  document.getElementById('in-image-preview').src = '';
+  document.getElementById('in-image-preview-wrap').style.display = 'none';
+}
+
 document.getElementById('in-image').addEventListener('change', (ev)=>{
   const file = ev.target.files[0];
   const preview = document.getElementById('in-image-preview');
-  if (!file) { preview.style.display = 'none'; preview.src = ''; return; }
+  const previewWrap = document.getElementById('in-image-preview-wrap');
+  if (!file) { previewWrap.style.display = 'none'; preview.src = ''; return; }
   if (file.size > 5 * 1024 * 1024) {
     alert('That image is over 5MB, please pick a smaller one.');
-    ev.target.value = '';
-    preview.style.display = 'none';
-    preview.src = '';
+    clearImageSelection();
     return;
   }
   const reader = new FileReader();
-  reader.onload = () => { preview.src = reader.result; preview.style.display = 'block'; };
+  reader.onload = () => { preview.src = reader.result; previewWrap.style.display = 'block'; };
   reader.readAsDataURL(file);
 });
+
+document.getElementById('in-image-clear').addEventListener('click', clearImageSelection);
 
 document.getElementById('in-username').addEventListener('paste', (ev)=>{
   const pasted = (ev.clipboardData || window.clipboardData).getData('text');
@@ -1189,9 +1199,7 @@ document.getElementById('submit-add').addEventListener('click', async ()=>{
   document.getElementById('in-username').value = '';
   document.getElementById('in-tag').value = '';
   document.getElementById('in-reason').value = '';
-  document.getElementById('in-image').value = '';
-  document.getElementById('in-image-preview').style.display = 'none';
-  document.getElementById('in-image-preview').src = '';
+  clearImageSelection();
   addPanel.classList.remove('open');
   if (!isAdmin) alert("Thanks, your report was submitted. It won't be visible to others until an admin reviews it, they'll verify or deny it soon.");
 });
