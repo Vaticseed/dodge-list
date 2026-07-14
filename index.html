@@ -770,6 +770,7 @@ function render(){
           ${rankAction}
           ${isAdmin ? `<span data-action="pin" data-id="${e.id}" style="color:#facc15;">${e.pinned ? 'Unpin' : 'Pin'}</span>` : ''}
           ${isAdmin && !e.verified ? `<span data-action="verify" data-id="${e.id}" style="color:#4ade80;">Verify</span>` : ''}
+          ${isAdmin && e.imageUrl ? `<span data-action="remove-screenshot" data-id="${e.id}" style="color:var(--text-dim);">Remove Screenshot</span>` : ''}
           ${isAdmin ? `<span data-action="delete" data-id="${e.id}" style="color:var(--accent);">Delete</span>` : ''}
         </span>
       </div>
@@ -788,6 +789,9 @@ function render(){
   });
   listEl.querySelectorAll('[data-action="verify"]').forEach(el=>{
     el.addEventListener('click', ()=> verifyEntry(el.getAttribute('data-id')));
+  });
+  listEl.querySelectorAll('[data-action="remove-screenshot"]').forEach(el=>{
+    el.addEventListener('click', ()=> removeScreenshot(el.getAttribute('data-id')));
   });
 }
 
@@ -940,6 +944,19 @@ async function togglePin(id){
     await updateDoc(doc(db, 'entries', id), { pinned: newPinned });
   } else {
     target.pinned = newPinned;
+    saveLocal(entries);
+    render();
+  }
+}
+
+async function removeScreenshot(id){
+  if (!isAdmin) return;
+  if (!confirm('Remove this screenshot from the entry?')) return;
+  if (useFirebase) {
+    await updateDoc(doc(db, 'entries', id), { imageUrl: null });
+  } else {
+    const target = entries.find(e => e.id === id);
+    if (target) target.imageUrl = null;
     saveLocal(entries);
     render();
   }
