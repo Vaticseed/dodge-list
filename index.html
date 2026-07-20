@@ -654,13 +654,19 @@ const FIREBASE_CONFIG = {
 const HENRIK_API_KEY = "HDEV-3e1b5dcb-80ca-402c-8202-dec975c2dc5f";
 
 /* ============================================================
-   AUDIT LOG OWNER
-   Only this account can see the activity log (who added,
-   verified, or deleted entries). Other admins can't view it,
-   even though they can still perform those actions themselves.
-   Enforced in Firestore rules too, not just hidden in the page.
+   AUDIT LOG VIEWERS
+   Only accounts in this list can see the activity log (who
+   added, verified, or deleted entries). Other admins can't view
+   it, even though they can still perform those actions
+   themselves. Enforced in Firestore rules too, not just hidden
+   in the page, add more emails by adding another entry below.
    ============================================================ */
-const OWNER_EMAIL = "vaticseed@dodgelist.local";
+const LOG_VIEWER_EMAILS = [
+  "vaticseed@dodgelist.local",
+  "lovewnl@dodgelist.local",
+  "gratings@dodgelist.local",
+  "benjy@dodgelist.local",
+];
 
 /* ============================================================
    SCREENSHOT UPLOADS (optional)
@@ -703,7 +709,7 @@ if (FIREBASE_CONFIG) {
       document.getElementById('admin-btn-label').textContent = isAdmin ? 'Admin ✓' : 'Admin';
       document.getElementById('admin-toggle-btn').classList.toggle('is-admin', isAdmin);
       document.getElementById('manage-protected-btn').style.display = isAdmin ? 'flex' : 'none';
-      const isOwner = isAdmin && user.email === OWNER_EMAIL;
+      const isOwner = isAdmin && LOG_VIEWER_EMAILS.includes(user.email);
       document.getElementById('view-logs-btn').style.display = isOwner ? 'flex' : 'none';
       document.getElementById('tab-pending').style.display = isAdmin ? 'inline-block' : 'none';
       if (!isAdmin && activeTab === 'pending') {
